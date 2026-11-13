@@ -1,0 +1,37 @@
+name: DevOps CI Pipeline
+# Пайплайн запускается автоматически при каждом git push в ветку main
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+jobs:
+  # --- ДЖОБА 1: ПРОВЕРКА СИНТАКСИСА И ВАЛИДАЦИЯ COMPOSE ---
+  lint-and-validate:
+    name: Lint & Validate Compose
+    runs-on: ubuntu-latest
+    steps:
+      - name: 1. Скачиваем код из репозитория
+        uses: actions/checkout@v4
+      - name: 2. Подставляем тестовый .env для валидации
+        run: cp .env.example .env
+      - name: 3. Валидируем синтаксис docker-compose.yaml
+        run: |
+          echo "Проверяем валидность манифеста..."
+          docker compose config --quiet
+          echo "Синтаксис идеален! Ошибок нет."
+  # --- ДЖОБА 2: СКАНИРОВАНИЕ УЯЗВИМОСТЕЙ (TRIVY) ---
+  security-scan:
+    name: Security Vulnerability Scan (Trivy)
+    runs-on: ubuntu-latest
+    needs: lint-and-validate  # Запускается только если первая проверка прошла успешно!
+    steps:
+      - name: Сканируем базу данных Postgres на известные уязвимости
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'postgres:16-alpine'
+          format: 'table'
+          exit-code: '0'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
