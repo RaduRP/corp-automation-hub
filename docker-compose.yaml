@@ -1,0 +1,78 @@
+version: '3.8'
+
+# 1. СЕТИ: Создаем изолированную сеть
+networks:
+  hub-net:
+    driver: bridge
+
+# 2. ТОМА (VOLUMES): Места на диске хоста, где данные выживут при удалении контейнеров
+volumes:
+  postgres_data:
+  n8n_data:
+  stirling_data:
+
+# 3. СЕРВИСЫ (КОНТЕЙНЕРЫ)
+services:
+
+  # --- СЕРВИС 1: БАЗА ДАННЫХ ДЛЯ N8N ---
+  postgres-db:
+    image: postgres:16-alpine
+    container_name: lab-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - hub-net
+    # Проверка здоровья базы: готова ли она принимать подключения?
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # --- СЕРВИС 2: N8N (АВТОМАТИЗАЦИЯ) ---
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:latest
+    container_name: lab-n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=postgres-db
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=${POSTGRES_DB}
+      - DB_POSTGRESDB_USER=${POSTGRES_USER}
+      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+      - GENERIC_TIMEZONE=${GENERIC_TIMEZONE}
+      - TZ=${TZ}
+      - N8N_SECURE_COOKIE=false 
+    volumes:
+      - n8n_data:/home/node/.n8n
+    networks:
+      - hub-net
+    # Не запускать n8n, пока база данных не пройдет healthcheck!
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+
+  # --- СЕРВИС 3: STIRLING-PDF (КОНВЕРТАЦИЯ, OCR И ДОКУМЕНТЫ) ---
+  stirling-pdf:
+    image: stirlingtools/stirling-pdf:latest
+    container_name: lab-stirling-pdf
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - DOCKER_ENABLE_SECURITY=false
+      - INSTALL_BOOK_AND_ADVANCED_HTML_OPS=true
+      - LANGS=ru_RU,en_US
+    volumes:
+      - stirling_data:/usr/share/tessdata
+    networks:
+      - hub-net
