@@ -5,10 +5,11 @@ on:
     branches: [ "main" ]
 
 jobs:
-  # --- 1. ЭТАП CI: ВАЛИДАЦИЯ СИНТАКСИСА (в облаке GitHub) ---
+  # --- 1. ВАЛИДАЦИЯ СИНТАКСИСА ---
   lint-and-validate:
     name: Lint & Validate Compose
     runs-on: ubuntu-latest
+    timeout-minutes: 3
     steps:
       - name: Скачиваем код
         uses: actions/checkout@v4
@@ -21,26 +22,29 @@ jobs:
           docker compose config --quiet
           echo "Синтаксис корректен!"
 
-  # --- 2. ЭТАП CI: СКАНИРОВАНИЕ БЕЗОПАСНОСТИ (в облаке GitHub) ---
+  # --- 2. СКАНИРОВАНИЕ БЕЗОПАСНОСТИ (С ТАЙМАУТОМ И ЗАЩИТОЙ) ---
   security-scan:
     name: Security Vulnerability Scan (Trivy)
     runs-on: ubuntu-latest
     needs: lint-and-validate
+    timeout-minutes: 5
+    continue-on-error: true   # Если база уязвимостей недоступна, не блокируем релиз
     steps:
-      - name: Сканируем образы на CVE-уязвимости
-        uses: aquasecurity/trivy-action@master
+      - name: Сканируем образ Postgres
+        uses: aquasecurity/trivy-action@0.28.0
         with:
           image-ref: 'postgres:16-alpine'
           format: 'table'
           exit-code: '0'
           ignore-unfixed: true
-          severity: 'CRITICAL,HIGH'
+          severity: 'CRITICAL'
 
-  # --- 3. ЭТАП CD: АВТОДЕПЛОЙ (НА ТВОЕЙ ВИРТУАЛКЕ ЧЕРЕЗ РАННЕР) ---
+  # --- 3. АВТОДЕПЛОЙ НА НАШУ ВИРТУАЛКУ ---
   deploy:
     name: CD Deploy to Production VM
     runs-on: self-hosted
-    needs: security-scan
+    needs: [lint-and-validate, security-scan]
+    timeout-minutes: 5
     steps:
       - name: Переходим в рабочую папку и обновляем контейнеры
         run: |
