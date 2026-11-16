@@ -16,6 +16,7 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"
+      - "8080:8080"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     networks:
@@ -78,7 +79,6 @@ services:
       - DOCKER_ENABLE_SECURITY=false
       - INSTALL_BOOK_AND_ADVANCED_HTML_OPS=true
       - LANGS=ru_RU,en_US
-      - SERVER_SERVLET_CONTEXT_PATH=/pdf
     volumes:
       - stirling_data:/usr/share/tessdata
     networks:
