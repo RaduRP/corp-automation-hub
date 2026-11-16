@@ -1,37 +1,51 @@
-name: DevOps CI Pipeline
-# Пайплайн запускается автоматически при каждом git push в ветку main
+name: DevOps CI/CD Pipeline
+
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+
 jobs:
-  # --- ДЖОБА 1: ПРОВЕРКА СИНТАКСИСА И ВАЛИДАЦИЯ COMPOSE ---
+  # --- 1. ЭТАП CI: ВАЛИДАЦИЯ СИНТАКСИСА (в облаке GitHub) ---
   lint-and-validate:
     name: Lint & Validate Compose
     runs-on: ubuntu-latest
     steps:
-      - name: 1. Скачиваем код из репозитория
+      - name: Скачиваем код
         uses: actions/checkout@v4
-      - name: 2. Подставляем тестовый .env для валидации
+
+      - name: Подставляем тестовый .env
         run: cp .env.example .env
-      - name: 3. Валидируем синтаксис docker-compose.yaml
+
+      - name: Проверяем валидность docker-compose
         run: |
-          echo "Проверяем валидность манифеста..."
           docker compose config --quiet
-          echo "Синтаксис идеален! Ошибок нет."
-  # --- ДЖОБА 2: СКАНИРОВАНИЕ УЯЗВИМОСТЕЙ (TRIVY) ---
+          echo "Синтаксис корректен!"
+
+  # --- 2. ЭТАП CI: СКАНИРОВАНИЕ БЕЗОПАСНОСТИ (в облаке GitHub) ---
   security-scan:
     name: Security Vulnerability Scan (Trivy)
     runs-on: ubuntu-latest
-    needs: lint-and-validate  # Запускается только если первая проверка прошла успешно!
+    needs: lint-and-validate
     steps:
-      - name: Сканируем базу данных Postgres на известные уязвимости
+      - name: Сканируем образы на CVE-уязвимости
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: 'postgres:16-alpine'
           format: 'table'
           exit-code: '0'
           ignore-unfixed: true
-          vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
+
+  # --- 3. ЭТАП CD: АВТОДЕПЛОЙ (НА ТВОЕЙ ВИРТУАЛКЕ ЧЕРЕЗ РАННЕР) ---
+  deploy:
+    name: CD Deploy to Production VM
+    runs-on: self-hosted
+    needs: security-scan
+    steps:
+      - name: Переходим в рабочую папку и обновляем контейнеры
+        run: |
+          echo "=== НАЧИНАЕМ АВТОМАТИЧЕСКИЙ ДЕПЛОЙ ==="
+          cd /home/administrator/devops-lab/automation-hub
+          git pull origin main
+          docker compose up -d --remove-orphans
+          echo "=== ДЕПЛОЙ УСПЕШНО ЗАВЕРШЕН ==="
