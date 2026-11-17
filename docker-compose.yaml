@@ -6,11 +6,13 @@ volumes:
   postgres_data:
   n8n_data:
   stirling_data:
-  minio_data:        # <--- НОВЫЙ ТОМ ДЛЯ ХРАНЕНИЯ S3
+  minio_data:
+  prometheus_data:
+  grafana_data:
 
 services:
 
-    # --- REVERSE PROXY ---
+  # --- REVERSE PROXY ---
   nginx:
     image: nginx:alpine
     container_name: lab-nginx
@@ -21,7 +23,7 @@ services:
       - "8000:8000"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./portal:/usr/share/nginx/html/portal:ro   # <--- ДОБАВЬ ВОТ ЭТУ СТРОЧКУ!
+      - ./portal:/usr/share/nginx/html/portal:ro
     networks:
       - hub-net
     depends_on:
@@ -30,7 +32,7 @@ services:
       - signature-validator
       - minio
 
-  # --- КОРПОРАТИВНОЕ S3 ХРАНИЛИЩЕ MINIO (НАПРЯМУЮ) ---
+  # --- КОРПОРАТИВНОЕ S3 ХРАНИЛИЩЕ MINIO ---
   minio:
     image: cgr.dev/chainguard/minio:latest
     container_name: lab-minio
@@ -47,7 +49,7 @@ services:
     networks:
       - hub-net
 
-  # --- НАШ МИКРОСЕРВИС ПРОВЕРКИ ЭЦП ---
+  # --- МИКРОСЕРВИС ПРОВЕРКИ ЭЦП ---
   signature-validator:
     build:
       context: ./services/signature-validator
@@ -114,3 +116,52 @@ services:
       - stirling_data:/usr/share/tessdata
     networks:
       - hub-net
+
+  # --- CADVISOR (СБОРЩИК МЕТРИК КОНТЕЙНЕРОВ) ---
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    container_name: lab-cadvisor
+    restart: unless-stopped
+    privileged: true
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    networks:
+      - hub-net
+
+  # --- PROMETHEUS (ХРАНИЛИЩЕ МЕТРИК) ---
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: lab-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - hub-net
+    depends_on:
+      - cadvisor
+
+  # --- GRAFANA (ДАШБОРДЫ И ВИЗУАЛИЗАЦИЯ) ---
+  grafana:
+    image: grafana/grafana:latest
+    container_name: lab-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafana_data:/var/lib/grafana
+    networks:
+      - hub-net
+    depends_on:
+      - prometheus
