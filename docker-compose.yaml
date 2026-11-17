@@ -6,10 +6,11 @@ volumes:
   postgres_data:
   n8n_data:
   stirling_data:
+  minio_data:        # <--- НОВЫЙ ТОМ ДЛЯ ХРАНЕНИЯ S3
 
 services:
 
-  # --- REVERSE PROXY (ЕДИНАЯ ТОЧКА ВХОДА) ---
+  # --- REVERSE PROXY ---
   nginx:
     image: nginx:alpine
     container_name: lab-nginx
@@ -18,6 +19,7 @@ services:
       - "80:80"
       - "8080:8080"
       - "8000:8000"
+      - "9001:9001"    # <--- ПОРТ ДЛЯ ПАНЕЛИ MINIO
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     networks:
@@ -25,6 +27,33 @@ services:
     depends_on:
       - n8n
       - stirling-pdf
+      - signature-validator
+      - minio
+
+  # --- КОРПОРАТИВНОЕ S3 ХРАНИЛИЩЕ MINIO ---
+  minio:
+    image: minio/minio:latest
+    container_name: lab-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - minio_data:/data
+    networks:
+      - hub-net
+
+  # --- НАШ МИКРОСЕРВИС ПРОВЕРКИ ЭЦП ---
+  signature-validator:
+    build:
+      context: ./services/signature-validator
+      dockerfile: Dockerfile
+    image: lab-signature-validator:latest
+    container_name: lab-signature-validator
+    restart: unless-stopped
+    networks:
+      - hub-net
 
   # --- БАЗА ДАННЫХ ДЛЯ N8N ---
   postgres-db:
@@ -45,12 +74,11 @@ services:
       timeout: 5s
       retries: 5
 
-  # --- N8N (АВТОМАТИЗАЦИЯ) ---
+  # --- N8N ---
   n8n:
     image: docker.n8n.io/n8nio/n8n:latest
     container_name: lab-n8n
     restart: unless-stopped
-    # Порты убрали! Доступ только через Nginx
     environment:
       - DB_TYPE=postgresdb
       - DB_POSTGRESDB_HOST=postgres-db
@@ -70,12 +98,11 @@ services:
       postgres-db:
         condition: service_healthy
 
-  # --- STIRLING-PDF (ДОКУМЕНТЫ) ---
+  # --- STIRLING-PDF ---
   stirling-pdf:
     image: stirlingtools/stirling-pdf:latest
     container_name: lab-stirling-pdf
     restart: unless-stopped
-    # Порты убрали! Доступ только через Nginx
     environment:
       - DOCKER_ENABLE_SECURITY=false
       - INSTALL_BOOK_AND_ADVANCED_HTML_OPS=true
@@ -84,20 +111,3 @@ services:
       - stirling_data:/usr/share/tessdata
     networks:
       - hub-net
-
-
-        # --- НАШ СОБСТВЕННЫЙ МИКРОСЕРВИС ПРОВЕРКИ ЭЦП ---
-  signature-validator:
-    build:
-      context: ./services/signature-validator
-      dockerfile: Dockerfile
-    image: lab-signature-validator:latest
-    container_name: lab-signature-validator
-    restart: unless-stopped
-    networks:
-      - hub-net
-    healthcheck:
-      test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8000/health\")'"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
