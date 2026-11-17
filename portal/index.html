@@ -3,251 +3,142 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Единый Республиканский Центр Обработки Документов и ЭЦП</title>
-    <!-- Tailwind CSS & FontAwesome Icons -->
+    <title>Республиканский Центр Верификации и Обработки Документов</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body { background: radial-gradient(circle at top, #0f172a 0%, #020617 100%); min-height: 100vh; }
-        .glass-panel { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .tab-active { background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border-color: #38bdf8; box-shadow: 0 0 15px rgba(56, 189, 248, 0.3); }
-        .dragover { border-color: #38bdf8 !important; background: rgba(56, 189, 248, 0.05) !important; }
+        .glass-panel { background: rgba(30, 41, 59, 0.75); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .tab-active { background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important; border-color: #38bdf8 !important; box-shadow: 0 0 15px rgba(56, 189, 248, 0.3); }
+        .opt-active { background: #0284c7 !important; border-color: #38bdf8 !important; color: white !important; }
     </style>
 </head>
 <body class="text-slate-100 flex flex-col items-center justify-between p-4 md:p-8 font-sans">
 
-    <!-- ВЕРХНЯЯ ШАПКА ГОСУДАРСТВЕННОГО УРОВНЯ -->
+    <!-- ШАПКА -->
     <header class="w-full max-w-5xl flex flex-col md:flex-row justify-between items-center mb-8 gap-4 border-b border-slate-800 pb-6">
         <div class="flex items-center gap-4">
             <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center shadow-lg shadow-sky-500/20">
                 <i class="fa-solid fa-shield-halved text-2xl text-white"></i>
             </div>
             <div>
-                <h1 class="text-xl md:text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+                <h1 class="text-xl md:text-2xl font-bold tracking-tight text-white">
                     РЕСПУБЛИКАНСКИЙ ЦЕНТР ВЕРИФИКАЦИИ ДОКУМЕНТОВ
                 </h1>
                 <p class="text-xs md:text-sm text-slate-400">Единая защищенная платформа обработки, распознавания и аудита ЭЦП</p>
             </div>
         </div>
-
-        <!-- ЖИВЫЕ ИНДИКАТОРЫ КЛАСТЕРА -->
-        <div class="flex items-center gap-3 text-xs bg-slate-900/80 px-4 py-2 rounded-xl border border-slate-800">
-            <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> S3 MinIO</div>
-            <span class="text-slate-600">|</span>
-            <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> OCR & Repair</div>
-            <span class="text-slate-600">|</span>
-            <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Валидатор ЭЦП</div>
+        <div class="flex gap-4 text-xs font-mono">
+            <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span> S3 MinIO</div>
+            <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span> OCR & Repair</div>
+            <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span> Валидатор ЭЦП</div>
         </div>
     </header>
 
-    <!-- ОСНОВНАЯ РАБОЧАЯ ЗОНА -->
+    <!-- ОСНОВНОЙ КОНТЕЙНЕР -->
     <main class="w-full max-w-5xl flex flex-col gap-6">
 
-        <!-- СЕЛЕКТОР РЕЖИМОВ (4 РЕЖИМА) -->
+        <!-- ВЫБОР РЕЖИМА (ТАБЫ) -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <button onclick="switchMode('verify')" id="tab-verify" class="tab-btn tab-active glass-panel p-4 rounded-xl flex flex-col items-center gap-2 text-center transition-all cursor-pointer">
-                <i class="fa-solid fa-stamp text-xl text-sky-400"></i>
-                <span class="font-semibold text-sm">Проверка ЭЦП</span>
-                <span class="text-[11px] text-slate-400">Аудит и целостность</span>
+            <button type="button" onclick="switchMode('verify')" id="tab-verify" class="tab-btn tab-active p-4 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-800 transition flex flex-col items-center text-center gap-2">
+                <i class="fa-solid fa-stamp text-sky-400 text-xl"></i>
+                <span class="font-bold text-sm">Проверка ЭЦП</span>
+                <span class="text-xs text-slate-400">Аудит и целостность</span>
             </button>
-            <button onclick="switchMode('repair')" id="tab-repair" class="tab-btn glass-panel p-4 rounded-xl flex flex-col items-center gap-2 text-center transition-all cursor-pointer hover:bg-slate-800/50">
-                <i class="fa-solid fa-wrench text-xl text-amber-400"></i>
-                <span class="font-semibold text-sm">Ремонт файлов</span>
-                <span class="text-[11px] text-slate-400">Лечение битых PDF</span>
+            <button type="button" onclick="switchMode('repair')" id="tab-repair" class="tab-btn p-4 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-800 transition flex flex-col items-center text-center gap-2">
+                <i class="fa-solid fa-wrench text-amber-400 text-xl"></i>
+                <span class="font-bold text-sm">Ремонт файлов</span>
+                <span class="text-xs text-slate-400">Лечение битых PDF</span>
             </button>
-            <button onclick="switchMode('ocr')" id="tab-ocr" class="tab-btn glass-panel p-4 rounded-xl flex flex-col items-center gap-2 text-center transition-all cursor-pointer hover:bg-slate-800/50">
-                <i class="fa-solid fa-eye text-xl text-emerald-400"></i>
-                <span class="font-semibold text-sm">Скриншот ➔ Word/Excel</span>
-                <span class="text-[11px] text-slate-400">Умный OCR таблиц</span>
+            <button type="button" onclick="switchMode('ocr')" id="tab-ocr" class="tab-btn p-4 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-800 transition flex flex-col items-center text-center gap-2">
+                <i class="fa-solid fa-eye text-emerald-400 text-xl"></i>
+                <span class="font-bold text-sm">Скриншот ➔ Word/Текст</span>
+                <span class="text-xs text-slate-400">OCR русского и англ. текста</span>
             </button>
-            <button onclick="switchMode('convert')" id="tab-convert" class="tab-btn glass-panel p-4 rounded-xl flex flex-col items-center gap-2 text-center transition-all cursor-pointer hover:bg-slate-800/50">
-                <i class="fa-solid fa-arrows-rotate text-xl text-indigo-400"></i>
-                <span class="font-semibold text-sm">Конвертер форматов</span>
-                <span class="text-[11px] text-slate-400">Office ↔ PDF/A</span>
+            <button type="button" onclick="switchMode('convert')" id="tab-convert" class="tab-btn p-4 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-800 transition flex flex-col items-center text-center gap-2">
+                <i class="fa-solid fa-arrows-rotate text-indigo-400 text-xl"></i>
+                <span class="font-bold text-sm">Конвертер форматов</span>
+                <span class="text-xs text-slate-400">Office ↔ PDF/A</span>
             </button>
         </div>
 
-        <!-- ЕДИНОЕ ОКНО ПЕРЕТАСКИВАНИЯ DRAG & DROP -->
-        <div id="dropzone" class="glass-panel border-2 border-dashed border-slate-700 hover:border-sky-500/50 rounded-2xl p-10 flex flex-col items-center justify-center gap-4 transition-all text-center cursor-pointer relative">
-            <input type="file" id="fileInput" class="absolute inset-0 opacity-0 cursor-pointer" onchange="handleFileSelect(event)">
-            
-            <div class="w-16 h-16 rounded-full bg-slate-800/80 flex items-center justify-center text-sky-400 text-2xl shadow-inner">
-                <i id="modeIcon" class="fa-solid fa-file-arrow-up"></i>
+        <!-- ОПЦИИ ФОРМАТА (ДЛЯ OCR И КОНВЕРТЕРА) -->
+        <div id="targetFormatContainer" class="hidden glass-panel rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 border border-slate-800">
+            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                <i class="fa-solid fa-sliders text-sky-400"></i> Выберите формат на выходе:
+            </span>
+            <div id="formatOptions" class="flex flex-wrap gap-2"></div>
+        </div>
+
+        <!-- ЗОНА ЗАГРУЗКИ ФАЙЛА (DROP ZONE) -->
+        <div class="glass-panel rounded-2xl p-8 border-2 border-dashed border-slate-700 hover:border-sky-500 transition-all flex flex-col items-center justify-center text-center relative cursor-pointer" onclick="document.getElementById('fileInput').click()">
+            <input type="file" id="fileInput" class="hidden" onchange="handleFileSelect(event)">
+            <div class="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center text-2xl text-sky-400 mb-4 shadow-inner">
+                <i id="modeIcon" class="fa-solid fa-stamp"></i>
             </div>
             <div>
-                <h3 id="modeTitle" class="text-lg font-bold text-white mb-1">Перетащите документ для криптографической проверки ЭЦП</h3>
-                <p id="modeDesc" class="text-sm text-slate-400">Поддерживаются договоры, акты, сканы и файлы формата PDF</p>
+                <h3 id="modeTitle" class="text-lg font-bold text-white mb-1">Перетащите документ для проверки ЭЦП</h3>
+                <p id="modeDesc" class="text-sm text-slate-400">Криптографический аудит, выявление фальсификаций, проверка сертификатов</p>
             </div>
-            <div id="fileInfo" class="hidden items-center gap-2 bg-sky-950/40 text-sky-300 border border-sky-800 px-4 py-2 rounded-xl text-xs font-mono">
+            <div id="fileInfo" class="hidden items-center gap-2 bg-sky-950/40 text-sky-300 border border-sky-800 px-4 py-2 rounded-xl text-xs font-mono mt-4">
                 <i class="fa-solid fa-paperclip"></i> <span id="fileName">file.pdf</span> (<span id="fileSize">0 KB</span>)
             </div>
         </div>
 
         <!-- КНОПКА ЗАПУСКА -->
-        <button onclick="processAction()" id="actionBtn" disabled class="w-full py-4 rounded-xl font-bold bg-slate-800 text-slate-500 cursor-not-allowed transition-all shadow-lg flex items-center justify-center gap-3">
+        <button type="button" onclick="processAction()" id="actionBtn" disabled class="w-full py-4 rounded-xl font-bold bg-slate-800 text-slate-500 cursor-not-allowed transition-all shadow-lg flex items-center justify-center gap-3">
             <i class="fa-solid fa-bolt"></i> <span>Выберите документ для обработки</span>
         </button>
 
-        <!-- РЕЗУЛЬТАТ ОБРАБОТКИ (ПОЯВЛЯЕТСЯ ДИНАМИЧЕСКИ) -->
-        <div id="resultPanel" class="hidden glass-panel rounded-2xl p-6 border-l-4 border-emerald-500 animate-fadeIn">
+        <!-- ПАНЕЛЬ РЕЗУЛЬТАТОВ -->
+        <div id="resultPanel" class="hidden glass-panel rounded-2xl p-6 border-l-4 border-emerald-500">
             <div class="flex items-start justify-between mb-4">
                 <div class="flex items-center gap-3">
                     <div id="statusIconBg" class="w-12 h-12 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xl">
                         <i id="statusIcon" class="fa-solid fa-check"></i>
                     </div>
                     <div>
-                        <h4 id="resultTitle" class="font-bold text-white text-lg">Документ успешно верифицирован</h4>
-                        <p id="resultSubtitle" class="text-xs text-slate-400">Электронный паспорт подлинности документа</p>
+                        <h4 id="resultTitle" class="font-bold text-white text-lg">Операция успешно выполнена</h4>
+                        <p id="resultSubtitle" class="text-xs text-slate-400">Результат работы микросервисов</p>
                     </div>
                 </div>
-                <div class="flex gap-2">
-                    <a href="http://10.90.6.25:9001" target="_blank" class="text-xs px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center gap-1.5">
-                        <i class="fa-solid fa-box-archive"></i> В архив S3
-                    </a>
+                <a href="http://10.90.6.25:9001" target="_blank" class="text-xs px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center gap-1.5">
+                    <i class="fa-solid fa-box-archive"></i> В архив S3
+                </a>
+            </div>
+
+            <div id="resultBody" class="bg-slate-900/60 rounded-xl p-4 text-xs font-mono text-slate-300 space-y-2 mb-4 border border-slate-800"></div>
+
+            <!-- БЛОК ПРЕДПРОСМОТРА РАСПОЗНАННОГО ТЕКСТА (ДЛЯ OCR) -->
+            <div id="ocrPreviewContainer" class="hidden mb-4 p-4 rounded-xl bg-slate-900/90 border border-slate-700/80">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-sky-400 flex items-center gap-1.5">
+                        <i class="fa-solid fa-align-left"></i> Распознанный текст (буквы и абзацы):
+                    </span>
+                    <button type="button" onclick="copyExtractedText()" class="text-xs px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition flex items-center gap-1.5 border border-slate-700">
+                        <i class="fa-regular fa-copy"></i> <span id="copyBtnText">Скопировать текст</span>
+                    </button>
                 </div>
+                <pre id="ocrTextPreview" class="text-xs text-slate-200 font-mono whitespace-pre-wrap max-h-56 overflow-y-auto p-3 bg-slate-950/70 rounded-lg border border-slate-800 select-all leading-relaxed"></pre>
             </div>
 
-            <!-- ТЕЛО ДЕТАЛЕЙ -->
-            <div id="resultBody" class="bg-slate-900/60 rounded-xl p-4 text-xs font-mono text-slate-300 space-y-2 mb-4 border border-slate-800/80">
-                <!-- Сюда JS вставит данные от микросервиса -->
-            </div>
-
-            <!-- КНОПКА СКАЧАТЬ -->
-            <div id="downloadContainer" class="hidden">
-                <a id="downloadBtn" href="#" download class="inline-flex items-center gap-2 bg-sky-600 hover:bg-sky-500 text-white font-bold px-6 py-2.5 rounded-xl text-sm transition-all shadow-lg shadow-sky-600/30">
-                    <i class="fa-solid fa-download"></i> Скачать обработанный файл
+            <!-- КНОПКА СКАЧИВАНИЯ -->
+            <div id="downloadContainer" class="hidden pt-2">
+                <a id="downloadBtn" href="#" download class="inline-flex items-center gap-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-8 py-3.5 rounded-xl text-sm transition-all shadow-lg shadow-emerald-600/30 cursor-pointer">
+                    <i class="fa-solid fa-download text-lg"></i> <span id="downloadBtnText">Скачать готовый файл</span>
                 </a>
             </div>
         </div>
 
     </main>
 
-    <!-- ПОДВАЛ -->
     <footer class="mt-12 text-center text-xs text-slate-500 border-t border-slate-900 pt-4 w-full max-w-5xl flex justify-between">
-        <span>Национальная система документооборота • Production Ready</span>
-        <span>Инфраструктура: Docker Compose • Nginx • MinIO S3 • FastAPI</span>
+        <span>Республиканская платформа документооборота • Production Ready</span>
+        <span>Инфраструктура: Docker Compose • Nginx • MinIO S3 • FastAPI • Stirling Engine</span>
     </footer>
 
-    <!-- ЛОГИКА ПОРТАЛА (JAVASCRIPT) -->
-    <script>
-        let currentMode = 'verify';
-        let selectedFile = null;
-
-        function switchMode(mode) {
-            currentMode = mode;
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('tab-active');
-                btn.classList.add('hover:bg-slate-800/50');
-            });
-            document.getElementById(`tab-${mode}`).classList.add('tab-active');
-            document.getElementById(`tab-${mode}`).classList.remove('hover:bg-slate-800/50');
-
-            const title = document.getElementById('modeTitle');
-            const desc = document.getElementById('modeDesc');
-            const icon = document.getElementById('modeIcon');
-
-            if (mode === 'verify') {
-                title.innerText = 'Перетащите документ для проверки ЭЦП';
-                desc.innerText = 'Криптографический аудит, выявление фальсификаций, проверка сертификатов';
-                icon.className = 'fa-solid fa-stamp';
-            } else if (mode === 'repair') {
-                title.innerText = 'Перетащите поврежденный файл для реанимации';
-                desc.innerText = 'Восстановление битых таблиц xref, потоков и поврежденных структур PDF';
-                icon.className = 'fa-solid fa-wrench';
-            } else if (mode === 'ocr') {
-                title.innerText = 'Перетащите скриншот или скан документа/таблицы';
-                desc.innerText = 'Оптическое распознавание OCR (Tesseract) в редактируемый Word, Excel или PDF';
-                icon.className = 'fa-solid fa-eye';
-            } else if (mode === 'convert') {
-                title.innerText = 'Универсальная конвертация в госархивный стандарт PDF/A';
-                desc.innerText = 'Поддерживаются DOCX, XLSX, PPTX, ODT, HTML, TXT, Images';
-                icon.className = 'fa-solid fa-arrows-rotate';
-            }
-            updateBtnText();
-        }
-
-        function handleFileSelect(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            selectedFile = file;
-            document.getElementById('fileInfo').classList.remove('hidden');
-            document.getElementById('fileInfo').classList.add('flex');
-            document.getElementById('fileName').innerText = file.name;
-            document.getElementById('fileSize').innerText = (file.size / 1024).toFixed(1) + ' KB';
-
-            const btn = document.getElementById('actionBtn');
-            btn.disabled = false;
-            btn.classList.remove('bg-slate-800', 'text-slate-500', 'cursor-not-allowed');
-            btn.classList.add('bg-gradient-to-r', 'from-sky-500', 'to-blue-600', 'hover:from-sky-400', 'hover:to-blue-500', 'text-white', 'cursor-pointer');
-            updateBtnText();
-        }
-
-        function updateBtnText() {
-            const btn = document.getElementById('actionBtn');
-            if (!selectedFile) return;
-            if (currentMode === 'verify') btn.innerHTML = '<i class="fa-solid fa-shield-halved"></i> Запустить криптографическую проверку ЭЦП';
-            if (currentMode === 'repair') btn.innerHTML = '<i class="fa-solid fa-wrench"></i> Восстановить поврежденный файл';
-            if (currentMode === 'ocr') btn.innerHTML = '<i class="fa-solid fa-eye"></i> Распознать текст и таблицу через OCR';
-            if (currentMode === 'convert') btn.innerHTML = '<i class="fa-solid fa-arrows-rotate"></i> Конвертировать в архивный стандарт';
-        }
-
-        async function processAction() {
-            if (!selectedFile) return;
-            const btn = document.getElementById('actionBtn');
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Обработка на микросервисах...';
-
-            const resultPanel = document.getElementById('resultPanel');
-            const resultBody = document.getElementById('resultBody');
-            resultPanel.classList.remove('hidden');
-
-            const formData = new FormData();
-            formData.append('file', selectedFile);
-
-            if (currentMode === 'verify') {
-                try {
-                    const res = await fetch('/api/verify', { method: 'POST', body: formData });
-                    const data = await res.json();
-                    
-                    if (data.has_signatures) {
-                        document.getElementById('resultTitle').innerText = data.all_signatures_valid ? 'ЭЦП ПОДЛИННАЯ. ДОКУМЕНТ ВЕРИФИЦИРОВАН' : 'ВНИМАНИЕ! ПОДПИСЬ НЕДЕЙСТВИТЕЛЬНА';
-                        resultPanel.className = data.all_signatures_valid ? 'glass-panel rounded-2xl p-6 border-l-4 border-emerald-500' : 'glass-panel rounded-2xl p-6 border-l-4 border-rose-500';
-                        document.getElementById('statusIconBg').className = data.all_signatures_valid ? 'w-12 h-12 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xl' : 'w-12 h-12 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center text-xl';
-                        document.getElementById('statusIcon').className = data.all_signatures_valid ? 'fa-solid fa-check' : 'fa-solid fa-triangle-exclamation';
-                    } else {
-                        document.getElementById('resultTitle').innerText = 'Документ проверен: ЭЦП отсутствует';
-                        resultPanel.className = 'glass-panel rounded-2xl p-6 border-l-4 border-sky-500';
-                        document.getElementById('statusIconBg').className = 'w-12 h-12 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center text-xl';
-                        document.getElementById('statusIcon').className = 'fa-solid fa-file-lines';
-                    }
-
-                    resultBody.innerHTML = `
-                        <div><strong class="text-slate-400">Имя файла:</strong> ${data.filename}</div>
-                        <div><strong class="text-slate-400">Наличие подписей:</strong> ${data.has_signatures ? 'ДА (' + data.signatures_count + ' шт.)' : 'НЕТ'}</div>
-                        <div><strong class="text-slate-400">Статус целостности:</strong> ${data.all_signatures_valid ? '<span class="text-emerald-400">ПОЛНАЯ ЦЕЛОСТНОСТЬ (Файл не менялся)</span>' : '<span class="text-amber-400">Без цифровой защиты</span>'}</div>
-                        <div><strong class="text-slate-400">Архивное хранилище S3:</strong> <span class="text-sky-400">s3://republic-documents/${data.filename}</span></div>
-                    `;
-                } catch(e) {
-                    resultBody.innerHTML = `<span class="text-rose-400">Ошибка обработки: ${e.message}</span>`;
-                }
-            } else {
-                // Демонстрационный ответ для Ремонта/OCR/Конвертера с перенаправлением в Stirling Engine
-                document.getElementById('resultTitle').innerText = 'Запрос успешно обработан движком';
-                resultPanel.className = 'glass-panel rounded-2xl p-6 border-l-4 border-indigo-500';
-                document.getElementById('statusIconBg').className = 'w-12 h-12 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-xl';
-                document.getElementById('statusIcon').className = 'fa-solid fa-check-double';
-
-                resultBody.innerHTML = `
-                    <div><strong class="text-slate-400">Имя файла:</strong> ${selectedFile.name}</div>
-                    <div><strong class="text-slate-400">Режим:</strong> ${currentMode.toUpperCase()} Engine (Tesseract & LibreOffice)</div>
-                    <div><strong class="text-slate-400">Статус:</strong> <span class="text-emerald-400">ГОТОВ К СКАЧИВАНИЮ</span></div>
-                    <div><strong class="text-slate-400">Интеграция:</strong> Доступно также в консоли Stirling-PDF (:8080)</div>
-                `;
-            }
-
-            btn.disabled = false;
-            updateBtnText();
-        }
-    </script>
+    <!-- ПОДКЛЮЧАЕМ СКРИПТ ПРИЛОЖЕНИЯ -->
+    <script src="app.js"></script>
 </body>
 </html>
+EOF
