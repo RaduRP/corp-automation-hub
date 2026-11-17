@@ -3,142 +3,374 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Республиканский Центр Верификации и Обработки Документов</title>
+    <title>DocGov Platform — Республиканский Центр Документооборота</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        body { background: radial-gradient(circle at top, #0f172a 0%, #020617 100%); min-height: 100vh; }
-        .glass-panel { background: rgba(30, 41, 59, 0.75); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .tab-active { background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important; border-color: #38bdf8 !important; box-shadow: 0 0 15px rgba(56, 189, 248, 0.3); }
-        .opt-active { background: #0284c7 !important; border-color: #38bdf8 !important; color: white !important; }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #060913;
+            background-image: 
+                radial-gradient(at 15% 15%, rgba(14, 165, 233, 0.12) 0px, transparent 50%),
+                radial-gradient(at 85% 85%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
+                radial-gradient(at 50% 50%, rgba(16, 185, 129, 0.05) 0px, transparent 60%);
+            background-attachment: fixed;
+            color: #f1f5f9;
+        }
+        .glass-nav {
+            background: rgba(10, 15, 30, 0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+        }
+        .hub-card {
+            background: rgba(13, 20, 38, 0.65);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 1.25rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        .hub-card:hover {
+            transform: translateY(-4px) scale(1.01);
+            border-color: rgba(56, 189, 248, 0.35);
+            box-shadow: 0 20px 40px -15px rgba(14, 165, 233, 0.25);
+        }
+        .card-cyan:hover { border-color: rgba(56, 189, 248, 0.5); box-shadow: 0 20px 40px -15px rgba(56, 189, 248, 0.3); }
+        .card-amber:hover { border-color: rgba(251, 191, 36, 0.5); box-shadow: 0 20px 40px -15px rgba(251, 191, 36, 0.3); }
+        .card-emerald:hover { border-color: rgba(52, 211, 153, 0.5); box-shadow: 0 20px 40px -15px rgba(52, 211, 153, 0.3); }
+        .card-indigo:hover { border-color: rgba(129, 140, 248, 0.5); box-shadow: 0 20px 40px -15px rgba(129, 140, 248, 0.3); }
+
+        .nav-btn { transition: all 0.2s ease; cursor: pointer; }
+        .nav-btn:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
+        .nav-btn-active {
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(99, 102, 241, 0.25)) !important;
+            border: 1px solid rgba(56, 189, 248, 0.4) !important;
+            color: #38bdf8 !important;
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
+        }
+        .scanner-dropzone {
+            background: rgba(15, 23, 42, 0.5);
+            border: 2px dashed rgba(56, 189, 248, 0.3);
+            transition: all 0.3s ease;
+            position: relative;
+            cursor: pointer;
+        }
+        .scanner-dropzone:hover, .scanner-dropzone.drop-active {
+            border-color: #38bdf8;
+            background: rgba(56, 189, 248, 0.08);
+            box-shadow: 0 0 30px rgba(56, 189, 248, 0.2);
+        }
+        .scanner-laser {
+            position: absolute;
+            left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, transparent, #38bdf8, #818cf8, transparent);
+            box-shadow: 0 0 15px #38bdf8;
+            animation: laserScan 3s ease-in-out infinite;
+            pointer-events: none;
+        }
+        @keyframes laserScan {
+            0% { top: 0%; opacity: 0; }
+            15% { opacity: 1; }
+            85% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+        .btn-glow:hover {
+            box-shadow: 0 0 25px rgba(56, 189, 248, 0.5);
+            filter: brightness(1.1);
+        }
+        .opt-btn { transition: all 0.2s ease; cursor: pointer; }
+        .opt-btn:hover { border-color: rgba(56, 189, 248, 0.5); }
+        .opt-active {
+            border-color: rgba(56, 189, 248, 0.8) !important;
+            background: rgba(56, 189, 248, 0.2) !important;
+            color: #38bdf8 !important;
+        }
     </style>
 </head>
-<body class="text-slate-100 flex flex-col items-center justify-between p-4 md:p-8 font-sans">
+<body class="flex flex-col min-h-screen">
 
-    <!-- ШАПКА -->
-    <header class="w-full max-w-5xl flex flex-col md:flex-row justify-between items-center mb-8 gap-4 border-b border-slate-800 pb-6">
-        <div class="flex items-center gap-4">
-            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center shadow-lg shadow-sky-500/20">
-                <i class="fa-solid fa-shield-halved text-2xl text-white"></i>
+    <!-- ВЕРХНЯЯ ШАПКА НАВИГАЦИИ -->
+    <header class="w-full px-4 lg:px-8 py-3 sticky top-0 z-50">
+        <div class="glass-nav rounded-2xl max-w-6xl mx-auto px-4 py-2.5 flex flex-wrap items-center justify-between gap-4">
+            <!-- Логотип -->
+            <button type="button" onclick="goHome()" class="flex items-center gap-3 group text-left focus:outline-none cursor-pointer">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 via-indigo-600 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-sky-500/30 group-hover:scale-105 transition-transform">
+                    <i class="fa-solid fa-shield-halved text-lg"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="font-black text-white text-base tracking-wider">DOCGOV</span>
+                        <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-400 border border-sky-500/30">v2.4 SECURE</span>
+                    </div>
+                    <div class="text-[11px] text-slate-400">Центр Документооборота • dev901</div>
+                </div>
+            </button>
+
+            <!-- Центральные вкладки -->
+            <nav class="flex items-center flex-wrap gap-1 bg-slate-900/80 p-1 rounded-xl border border-slate-800">
+                <button type="button" onclick="goHome()" id="nav-home" class="nav-btn nav-btn-active px-3 py-1.5 rounded-lg text-xs font-bold text-slate-300 border border-transparent">
+                    <i class="fa-solid fa-house mr-1.5"></i> Главная
+                </button>
+                <button type="button" onclick="switchMode('verify')" id="nav-verify" class="nav-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-300 border border-transparent">
+                    <i class="fa-solid fa-stamp mr-1.5 text-sky-400"></i> Аудит ЭЦП
+                </button>
+                <button type="button" onclick="switchMode('repair')" id="nav-repair" class="nav-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-300 border border-transparent">
+                    <i class="fa-solid fa-wrench mr-1.5 text-amber-400"></i> Ремонт PDF
+                </button>
+                <button type="button" onclick="switchMode('ocr')" id="nav-ocr" class="nav-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-300 border border-transparent">
+                    <i class="fa-solid fa-file-word mr-1.5 text-emerald-400"></i> Скан в Word
+                </button>
+                <button type="button" onclick="switchMode('convert')" id="nav-convert" class="nav-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-300 border border-transparent">
+                    <i class="fa-solid fa-arrows-rotate mr-1.5 text-indigo-400"></i> Конвертер
+                </button>
+            </nav>
+
+            <!-- Мониторинг и статус -->
+            <div class="flex items-center gap-2">
+                <a href="http://10.90.6.25:3000" target="_blank" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-slate-300 text-xs font-semibold transition-colors" title="Grafana 3000">
+                    <i class="fa-solid fa-chart-line text-orange-400"></i> Grafana
+                </a>
+                <a href="http://10.90.6.25:9001" target="_blank" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-slate-300 text-xs font-semibold transition-colors" title="MinIO S3 9001">
+                    <i class="fa-solid fa-server text-rose-400"></i> MinIO S3
+                </a>
+                <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold">
+                    <span class="relative flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    <span class="hidden md:inline">9 СЕРВИСОВ</span> ONLINE
+                </div>
             </div>
-            <div>
-                <h1 class="text-xl md:text-2xl font-bold tracking-tight text-white">
-                    РЕСПУБЛИКАНСКИЙ ЦЕНТР ВЕРИФИКАЦИИ ДОКУМЕНТОВ
-                </h1>
-                <p class="text-xs md:text-sm text-slate-400">Единая защищенная платформа обработки, распознавания и аудита ЭЦП</p>
-            </div>
-        </div>
-        <div class="flex gap-4 text-xs font-mono">
-            <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span> S3 MinIO</div>
-            <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span> OCR & Repair</div>
-            <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span> Валидатор ЭЦП</div>
         </div>
     </header>
 
-    <!-- ОСНОВНОЙ КОНТЕЙНЕР -->
-    <main class="w-full max-w-5xl flex flex-col gap-6">
+    <!-- ОСНОВНОЙ КОНТЕНТ -->
+    <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-6">
 
-        <!-- ВЫБОР РЕЖИМА (ТАБЫ) -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <button type="button" onclick="switchMode('verify')" id="tab-verify" class="tab-btn tab-active p-4 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-800 transition flex flex-col items-center text-center gap-2">
-                <i class="fa-solid fa-stamp text-sky-400 text-xl"></i>
-                <span class="font-bold text-sm">Проверка ЭЦП</span>
-                <span class="text-xs text-slate-400">Аудит и целостность</span>
-            </button>
-            <button type="button" onclick="switchMode('repair')" id="tab-repair" class="tab-btn p-4 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-800 transition flex flex-col items-center text-center gap-2">
-                <i class="fa-solid fa-wrench text-amber-400 text-xl"></i>
-                <span class="font-bold text-sm">Ремонт файлов</span>
-                <span class="text-xs text-slate-400">Лечение битых PDF</span>
-            </button>
-            <button type="button" onclick="switchMode('ocr')" id="tab-ocr" class="tab-btn p-4 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-800 transition flex flex-col items-center text-center gap-2">
-                <i class="fa-solid fa-eye text-emerald-400 text-xl"></i>
-                <span class="font-bold text-sm">Скриншот ➔ Word/Текст</span>
-                <span class="text-xs text-slate-400">OCR русского и англ. текста</span>
-            </button>
-            <button type="button" onclick="switchMode('convert')" id="tab-convert" class="tab-btn p-4 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-800 transition flex flex-col items-center text-center gap-2">
-                <i class="fa-solid fa-arrows-rotate text-indigo-400 text-xl"></i>
-                <span class="font-bold text-sm">Конвертер форматов</span>
-                <span class="text-xs text-slate-400">Office ↔ PDF/A</span>
-            </button>
+        <!-- 1. ГЛАВНЫЙ ЭКРАН (HOME VIEW) -->
+        <div id="homeView" class="space-y-8">
+            <div class="text-center max-w-3xl mx-auto space-y-3 pt-2">
+                <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-sky-500/10 border border-sky-500/30 text-sky-400 text-xs font-bold">
+                    <i class="fa-solid fa-shield-halved"></i> Единая платформа документооборота • dev901
+                </div>
+                <h1 class="text-3xl md:text-5xl font-black tracking-tight text-white leading-tight">
+                    Автоматизация & Защита <br>
+                    <span class="bg-clip-text text-transparent bg-gradient-to-r from-sky-400 via-indigo-400 to-purple-400">
+                        Корпоративных Документов
+                    </span>
+                </h1>
+                <p class="text-xs md:text-sm text-slate-400 leading-relaxed">
+                    Проверка подлинности электронных подписей, распознавание текста со сканов в редактируемый Word, восстановление поврежденных файлов и конвертация форматов.
+                </p>
+            </div>
+
+            <!-- 4 Интерактивные WOW-карточки -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <!-- Карточка 1: ЭЦП -->
+                <div onclick="switchMode('verify')" class="hub-card card-cyan p-6 flex flex-col justify-between group">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 rounded-xl bg-sky-500/20 border border-sky-500/30 text-sky-400 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                                <i class="fa-solid fa-stamp"></i>
+                            </div>
+                            <span class="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-sky-500/10 text-sky-300 border border-sky-500/20">Проверка ЭЦП</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-2 group-hover:text-sky-300 transition-colors">Верификация & Аудит ЭЦП</h3>
+                        <p class="text-xs text-slate-400 leading-relaxed mb-4">
+                            Криптографическая проверка подлинности цифровых подписей, выявление изменений в документе, проверка сертификата и штампа времени.
+                        </p>
+                    </div>
+                    <div class="flex items-center text-xs font-bold text-sky-400 group-hover:translate-x-2 transition-transform">
+                        <span>Проверить подпись документа</span> <i class="fa-solid fa-arrow-right ml-2 text-[10px]"></i>
+                    </div>
+                </div>
+
+                <!-- Карточка 2: Ремонт PDF -->
+                <div onclick="switchMode('repair')" class="hub-card card-amber p-6 flex flex-col justify-between group">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 rounded-xl bg-amber-500/20 border border-amber-500/30 text-amber-400 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                                <i class="fa-solid fa-wrench"></i>
+                            </div>
+                            <span class="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-300 border border-amber-500/20">Восстановление файлов</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-2 group-hover:text-amber-300 transition-colors">Реанимация Поврежденных PDF</h3>
+                        <p class="text-xs text-slate-400 leading-relaxed mb-4">
+                            Автоматическое исправление битых и не открывающихся PDF-документов, восстановление структуры заголовков и поврежденных данных.
+                        </p>
+                    </div>
+                    <div class="flex items-center text-xs font-bold text-amber-400 group-hover:translate-x-2 transition-transform">
+                        <span>Восстановить битый PDF</span> <i class="fa-solid fa-arrow-right ml-2 text-[10px]"></i>
+                    </div>
+                </div>
+
+                <!-- Карточка 3: Скан в Word -->
+                <div onclick="switchMode('ocr')" class="hub-card card-emerald p-6 flex flex-col justify-between group">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                                <i class="fa-solid fa-file-word"></i>
+                            </div>
+                            <span class="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">Русский + Английский</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-2 group-hover:text-emerald-300 transition-colors">Распознавание Сканов в Word</h3>
+                        <p class="text-xs text-slate-400 leading-relaxed mb-4">
+                            Преобразование нередактируемых сканов, актов и фотографий документов в настоящий текстовый файл Word (.docx) или чистый текст.
+                        </p>
+                    </div>
+                    <div class="flex items-center text-xs font-bold text-emerald-400 group-hover:translate-x-2 transition-transform">
+                        <span>Распознать скан в Word</span> <i class="fa-solid fa-arrow-right ml-2 text-[10px]"></i>
+                    </div>
+                </div>
+
+                <!-- Карточка 4: Конвертер -->
+                <div onclick="switchMode('convert')" class="hub-card card-indigo p-6 flex flex-col justify-between group">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 rounded-xl bg-indigo-500/20 border border-indigo-500/30 text-indigo-400 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                                <i class="fa-solid fa-arrows-rotate"></i>
+                            </div>
+                            <span class="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">PDF ⇄ Word / PPTX</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-2 group-hover:text-indigo-300 transition-colors">Конвертер Форматов</h3>
+                        <p class="text-xs text-slate-400 leading-relaxed mb-4">
+                            Быстрое и точное преобразование документов между форматами PDF, Word (.docx) и презентациями PowerPoint (.pptx) без сдвига верстки.
+                        </p>
+                    </div>
+                    <div class="flex items-center text-xs font-bold text-indigo-400 group-hover:translate-x-2 transition-transform">
+                        <span>Сконвертировать документ</span> <i class="fa-solid fa-arrow-right ml-2 text-[10px]"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Быстрый статус кластера -->
+            <div class="hub-card p-4 flex flex-wrap items-center justify-between gap-4 text-xs text-slate-400">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-server text-sky-400"></i>
+                    <span>Сервер: <strong class="text-slate-200">dev901 (Ubuntu Linux)</strong></span>
+                </div>
+                <div class="flex items-center gap-6">
+                    <span><i class="fa-solid fa-network-wired text-indigo-400 mr-1.5"></i> Ingress: <strong class="text-slate-200">Nginx :80</strong></span>
+                    <span><i class="fa-solid fa-hard-drive text-amber-400 mr-1.5"></i> S3: <strong class="text-slate-200">MinIO :9000</strong></span>
+                    <span><i class="fa-solid fa-gauge-high text-emerald-400 mr-1.5"></i> Метрики: <strong class="text-slate-200">Prometheus :9090</strong></span>
+                </div>
+            </div>
         </div>
 
-        <!-- ОПЦИИ ФОРМАТА (ДЛЯ OCR И КОНВЕРТЕРА) -->
-        <div id="targetFormatContainer" class="hidden glass-panel rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 border border-slate-800">
-            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-2">
-                <i class="fa-solid fa-sliders text-sky-400"></i> Выберите формат на выходе:
-            </span>
-            <div id="formatOptions" class="flex flex-wrap gap-2"></div>
-        </div>
-
-        <!-- ЗОНА ЗАГРУЗКИ ФАЙЛА (DROP ZONE) -->
-        <div class="glass-panel rounded-2xl p-8 border-2 border-dashed border-slate-700 hover:border-sky-500 transition-all flex flex-col items-center justify-center text-center relative cursor-pointer" onclick="document.getElementById('fileInput').click()">
-            <input type="file" id="fileInput" class="hidden" onchange="handleFileSelect(event)">
-            <div class="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center text-2xl text-sky-400 mb-4 shadow-inner">
-                <i id="modeIcon" class="fa-solid fa-stamp"></i>
+        <!-- 2. РАБОЧИЙ ЭКРАН МОДУЛЕЙ (WORKSPACE VIEW) -->
+        <div id="workspaceView" class="hidden space-y-6">
+            <!-- Навигационная полоса «Вернуться назад» -->
+            <div class="flex items-center justify-between">
+                <button type="button" onclick="goHome()" class="inline-flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-white transition-colors cursor-pointer">
+                    <i class="fa-solid fa-arrow-left"></i> Вернуться на Главную
+                </button>
+                <div id="moduleBadge" class="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-sky-500/10 text-sky-300 border border-sky-500/20">
+                    Проверка ЭЦП
+                </div>
             </div>
-            <div>
-                <h3 id="modeTitle" class="text-lg font-bold text-white mb-1">Перетащите документ для проверки ЭЦП</h3>
-                <p id="modeDesc" class="text-sm text-slate-400">Криптографический аудит, выявление фальсификаций, проверка сертификатов</p>
-            </div>
-            <div id="fileInfo" class="hidden items-center gap-2 bg-sky-950/40 text-sky-300 border border-sky-800 px-4 py-2 rounded-xl text-xs font-mono mt-4">
-                <i class="fa-solid fa-paperclip"></i> <span id="fileName">file.pdf</span> (<span id="fileSize">0 KB</span>)
-            </div>
-        </div>
 
-        <!-- КНОПКА ЗАПУСКА -->
-        <button type="button" onclick="processAction()" id="actionBtn" disabled class="w-full py-4 rounded-xl font-bold bg-slate-800 text-slate-500 cursor-not-allowed transition-all shadow-lg flex items-center justify-center gap-3">
-            <i class="fa-solid fa-bolt"></i> <span>Выберите документ для обработки</span>
-        </button>
+            <!-- Заголовок активного модуля -->
+            <div class="flex items-center gap-4">
+                <div id="moduleIconBg" class="w-12 h-12 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center text-xl border border-sky-500/30">
+                    <i id="modeIcon" class="fa-solid fa-stamp"></i>
+                </div>
+                <div>
+                    <h2 id="modeTitle" class="text-xl font-bold text-white">Верификация & Аудит ЭЦП</h2>
+                    <p id="modeDesc" class="text-xs text-slate-400">Проверка подлинности подписи, выявление изменений в документе и аудит сертификатов</p>
+                </div>
+            </div>
 
-        <!-- ПАНЕЛЬ РЕЗУЛЬТАТОВ -->
-        <div id="resultPanel" class="hidden glass-panel rounded-2xl p-6 border-l-4 border-emerald-500">
-            <div class="flex items-start justify-between mb-4">
-                <div class="flex items-center gap-3">
-                    <div id="statusIconBg" class="w-12 h-12 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xl">
-                        <i id="statusIcon" class="fa-solid fa-check"></i>
+            <!-- Селектор формата результата (для OCR и Конвертера) -->
+            <div id="targetFormatContainer" class="hidden hub-card p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <span class="text-xs font-bold text-slate-300 flex items-center gap-2">
+                    <i class="fa-solid fa-sliders text-sky-400"></i> Выберите формат на выходе:
+                </span>
+                <div id="formatOptions" class="flex flex-wrap gap-2"></div>
+            </div>
+
+            <!-- Зона лазерной загрузки документов (Dropzone) -->
+            <div id="dropzone" class="scanner-dropzone rounded-2xl p-8 text-center" onclick="document.getElementById('fileInput').click()">
+                <div class="scanner-laser"></div>
+                <input type="file" id="fileInput" class="hidden" onchange="handleFileSelect(event)">
+                
+                <div class="space-y-3 relative z-10">
+                    <div class="w-12 h-12 mx-auto rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center text-xl border border-sky-500/30">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
                     </div>
                     <div>
-                        <h4 id="resultTitle" class="font-bold text-white text-lg">Операция успешно выполнена</h4>
-                        <p id="resultSubtitle" class="text-xs text-slate-400">Результат работы микросервисов</p>
+                        <div class="text-sm font-bold text-white">Нажмите для выбора или перетащите файл сюда</div>
+                        <div id="dropzoneHint" class="text-xs text-slate-400 mt-1">Загрузите документ для обработки</div>
+                    </div>
+                    <div id="fileInfoChip" class="hidden inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-sky-500/20 border border-sky-500/40 text-xs font-mono text-sky-300">
+                        <i class="fa-solid fa-file"></i>
+                        <span id="fileNameDisplay">file.pdf</span>
+                        <span id="fileSizeDisplay" class="text-slate-400">(0 KB)</span>
+                        <button type="button" onclick="resetFile(event)" class="ml-2 w-5 h-5 rounded-md bg-rose-500/20 text-rose-300 hover:bg-rose-500 hover:text-white flex items-center justify-center transition-colors" title="Сбросить файл">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
                     </div>
                 </div>
-                <a href="http://10.90.6.25:9001" target="_blank" class="text-xs px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center gap-1.5">
-                    <i class="fa-solid fa-box-archive"></i> В архив S3
-                </a>
             </div>
 
-            <div id="resultBody" class="bg-slate-900/60 rounded-xl p-4 text-xs font-mono text-slate-300 space-y-2 mb-4 border border-slate-800"></div>
+            <!-- Главная кнопка запуска -->
+            <button type="button" onclick="processAction()" id="actionBtn" disabled class="w-full py-4 rounded-xl font-bold text-sm tracking-wide text-white transition-all bg-slate-800 border border-slate-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                <i class="fa-solid fa-arrow-up-from-bracket mr-2"></i> Выберите файл для начала работы
+            </button>
 
-            <!-- БЛОК ПРЕДПРОСМОТРА РАСПОЗНАННОГО ТЕКСТА (ДЛЯ OCR) -->
-            <div id="ocrPreviewContainer" class="hidden mb-4 p-4 rounded-xl bg-slate-900/90 border border-slate-700/80">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-xs font-semibold uppercase tracking-wider text-sky-400 flex items-center gap-1.5">
-                        <i class="fa-solid fa-align-left"></i> Распознанный текст (буквы и абзацы):
-                    </span>
-                    <button type="button" onclick="copyExtractedText()" class="text-xs px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition flex items-center gap-1.5 border border-slate-700">
-                        <i class="fa-regular fa-copy"></i> <span id="copyBtnText">Скопировать текст</span>
+            <!-- Панель результатов (Result Panel) -->
+            <div id="resultPanel" class="hidden hub-card p-6">
+                <div class="flex items-center justify-between border-b border-slate-800/80 pb-4 mb-4">
+                    <div class="flex items-center gap-3">
+                        <div id="statusIconBg" class="w-10 h-10 rounded-xl bg-sky-500/20 text-sky-400 border border-sky-500/30 flex items-center justify-center text-lg">
+                            <i id="statusIcon" class="fa-solid fa-circle-check"></i>
+                        </div>
+                        <div>
+                            <h3 id="resultTitle" class="text-base font-bold text-white">Результат обработки</h3>
+                            <p class="text-xs text-slate-400">Результат обработки микросервисной платформой</p>
+                        </div>
+                    </div>
+                    <button type="button" onclick="clearResults()" class="text-xs text-slate-400 hover:text-white px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-700 hover:border-slate-600 transition-colors cursor-pointer" title="Очистить результат">
+                        <i class="fa-solid fa-trash-can mr-1.5"></i> Очистить
                     </button>
                 </div>
-                <pre id="ocrTextPreview" class="text-xs text-slate-200 font-mono whitespace-pre-wrap max-h-56 overflow-y-auto p-3 bg-slate-950/70 rounded-lg border border-slate-800 select-all leading-relaxed"></pre>
-            </div>
 
-            <!-- КНОПКА СКАЧИВАНИЯ -->
-            <div id="downloadContainer" class="hidden pt-2">
-                <a id="downloadBtn" href="#" download class="inline-flex items-center gap-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-8 py-3.5 rounded-xl text-sm transition-all shadow-lg shadow-emerald-600/30 cursor-pointer">
-                    <i class="fa-solid fa-download text-lg"></i> <span id="downloadBtnText">Скачать готовый файл</span>
-                </a>
+                <!-- Тело результата -->
+                <div id="resultBody" class="space-y-3 font-mono text-xs"></div>
+
+                <!-- Блок предварительного просмотра распознанного текста -->
+                <div id="ocrPreviewContainer" class="hidden mt-4 pt-4 border-t border-slate-800/80 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-slate-300">Распознанный текст:</span>
+                        <button type="button" onclick="copyExtractedText()" class="text-xs px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-sky-400 border border-slate-700 flex items-center gap-1.5 transition-colors cursor-pointer">
+                            <i class="fa-solid fa-copy"></i> <span id="copyBtnText">Копировать текст</span>
+                        </button>
+                    </div>
+                    <div id="ocrTextPreview" class="p-3 bg-slate-950/80 rounded-xl border border-slate-800/80 text-xs font-mono text-slate-300 max-h-48 overflow-y-auto whitespace-pre-wrap leading-relaxed select-all"></div>
+                </div>
+
+                <!-- Контейнер для кнопки скачивания -->
+                <div id="downloadContainer" class="hidden mt-5 pt-4 border-t border-slate-800/80">
+                    <a id="downloadBtn" href="#" download="" class="w-full inline-flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-sm bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white shadow-lg shadow-emerald-500/25 transition-all">
+                        <i class="fa-solid fa-download"></i> <span id="downloadBtnText">Скачать обработанный файл</span>
+                    </a>
+                </div>
             </div>
         </div>
-
     </main>
 
-    <footer class="mt-12 text-center text-xs text-slate-500 border-t border-slate-900 pt-4 w-full max-w-5xl flex justify-between">
-        <span>Республиканская платформа документооборота • Production Ready</span>
-        <span>Инфраструктура: Docker Compose • Nginx • MinIO S3 • FastAPI • Stirling Engine</span>
+    <!-- ПОДВАЛ -->
+    <footer class="w-full text-center py-4 border-t border-slate-800/80 text-[11px] text-slate-400 bg-slate-950/40">
+        Республиканский Центр Документооборота • dev901 Cluster
     </footer>
 
-    <!-- ПОДКЛЮЧАЕМ СКРИПТ ПРИЛОЖЕНИЯ -->
-    <script src="app.js"></script>
+    <!-- ПОДКЛЮЧЕНИЕ ЧИСТОГО МОДУЛЯ JAVASCRIPT (С КЭШ-БАСТЕРОМ V=4) -->
+    <script src="app.js?v=5"></script>
 </body>
 </html>
-EOF

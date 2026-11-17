@@ -1,1 +1,16 @@
+# Секреты окружения (НИКОГДА не пушим в Git!)
 .env
+# Данные томов баз и хранилищ
+postgres_data/
+minio_data/
+prometheus_data/
+grafana_data/
+n8n_data/
+stirling_data/
+# Временные языковые пакеты (скрипт сам скачает их при установке)
+tessdata/
+*.traineddata
+# Логи и кэш
+*.log
+__pycache__/
+.DS_Store
