@@ -390,9 +390,11 @@ async function processAction() {
                             <span>Подпись #${i+1} (${sig.field_name})</span>
                             <span class="text-[10px] px-2 py-0.5 rounded bg-sky-500/20 text-sky-300">Проверено</span>
                         </div>
-                        <div><strong class="text-slate-400">Подписант:</strong> <span class="text-white">${sig.signer || 'Не указан'}</span></div>
-                        <div><strong class="text-slate-400">Целостность:</strong> <span class="${sig.intact ? 'text-emerald-400' : 'text-rose-400'} font-semibold">${sig.intact ? 'Документ не изменялся' : 'Файл был модифицирован!'}</span></div>
-                        <div><strong class="text-slate-400">Штамп времени:</strong> ${sig.signing_time || 'Отсутствует'}</div>
+                        <div><strong class="text-slate-400">Подписант:</strong> <span class="text-white font-medium">${sig.signer || sig.signer_subject || 'Не указан'}</span></div>
+                        <div><strong class="text-slate-400">Издатель:</strong> <span class="text-slate-300">${sig.issuer || 'Не указан'}</span></div>
+                        <div><strong class="text-slate-400">Целостность:</strong> <span class="${sig.intact ? 'text-emerald-400' : 'text-rose-400'} font-semibold">${sig.intact ? 'Документ не изменялся (целостность подтверждена)' : 'Файл был модифицирован!'}</span></div>
+                        <div><strong class="text-slate-400">Криптография:</strong> <span class="${sig.cryptographically_valid ? 'text-emerald-400' : 'text-rose-400'} font-semibold">${sig.cryptographically_valid ? 'Математически корректна' : 'Сбой проверки подписи'}</span></div>
+                        <div><strong class="text-slate-400">Штамп времени:</strong> <span class="text-slate-300">${sig.signing_time || 'Отсутствует'}</span></div>
                     </div>
                 `).join('');
             }
@@ -408,7 +410,7 @@ async function processAction() {
             const formData = new FormData();
             formData.append('fileInput', selectedFile);
 
-            const res = await fetch('/api/stirling/general/repair', { method: 'POST', body: formData });
+            const res = await fetch('/api/stirling/misc/repair', { method: 'POST', body: formData });
             if (!res.ok) throw new Error(`Сбой восстановления файла (${res.status})`);
 
             const blob = await res.blob();
@@ -519,28 +521,31 @@ async function processAction() {
         } else if (currentMode === 'convert') {
             const formData = new FormData();
             formData.append('fileInput', selectedFile);
-            formData.append('outputFormat', targetFormat);
-
-            const res = await fetch('/api/stirling/convert/pdf/auto-rename', { method: 'POST', body: formData });
+            let endpoint = '/api/stirling/convert/file/pdf';
+            let ext = 'pdf';
+            if (targetFormat === 'docx') {
+                endpoint = '/api/stirling/convert/pdf/word';
+                formData.append('outputFormat', 'docx');
+                ext = 'docx';
+            } else if (targetFormat === 'pptx') {
+                endpoint = '/api/stirling/convert/pdf/presentation';
+                formData.append('outputFormat', 'pptx');
+                ext = 'pptx';
+            }
+            const res = await fetch(endpoint, { method: 'POST', body: formData });
             if (!res.ok) throw new Error(`Ошибка конвертации (${res.status})`);
-
             const blob = await res.blob();
             currentBlobUrl = window.URL.createObjectURL(blob);
-
             const baseName = selectedFile.name.substring(0, selectedFile.name.lastIndexOf('.')) || selectedFile.name;
-            const ext = targetFormat;
             const newName = `${baseName}_converted.${ext}`;
-
             downloadBtn.href = currentBlobUrl;
             downloadBtn.download = newName;
             document.getElementById('downloadBtnText').innerText = `Скачать сконвертированный файл (${newName})`;
             downloadContainer.classList.remove('hidden');
-
             document.getElementById('resultTitle').innerText = 'Конвертация успешно завершена!';
             resultPanel.className = 'hub-card p-6 border-l-4 border-indigo-500';
             document.getElementById('statusIconBg').className = 'w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 flex items-center justify-center text-lg';
             document.getElementById('statusIcon').className = 'fa-solid fa-arrows-rotate';
-
             resultBody.innerHTML = `
                 <div><strong class="text-slate-400">Исходный документ:</strong> <span class="text-white">${selectedFile.name}</span></div>
                 <div><strong class="text-slate-400">Новый формат:</strong> <span class="text-emerald-400 font-semibold">.${ext.toUpperCase()}</span></div>

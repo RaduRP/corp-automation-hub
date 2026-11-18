@@ -1,44 +1,38 @@
 import io
+import datetime
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pyhanko.pdf_utils.reader import PdfFileReader
-from pyhanko.sign.validation import validate_pdf_signature
-from pyhanko_certvalidator import ValidationContext
-
+from pyhanko.sign.validation import async_validate_pdf_signature
 app = FastAPI(
     title="National Document Signature Verification API",
     description="Государственный микросервис верификации целостности документов и проверки ЭЦП (PAdES)",
     version="1.0.0"
 )
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 @app.get("/health")
 def health_check():
     return {"status": "healthy", "service": "signature-validator", "version": "1.0.0"}
-
 @app.post("/api/v1/verify")
 async def verify_signature(file: UploadFile = File(...)):
     if not file.filename.lower().endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Поддерживаются только файлы формата PDF")
-
     contents = await file.read()
     pdf_stream = io.BytesIO(contents)
-
     try:
         reader = PdfFileReader(pdf_stream)
         embedded_sigs = reader.embedded_signatures
     except Exception as e:
         return {
             "is_valid": False,
-            "error": f"Не удалось прочитать PDF структуру (возможно файл поврежден): {str(e)}"
+            "has_signatures": False,
+            "error": f"Не удалось прочитать PDF структуру: {str(e)}"
         }
-
     if not embedded_sigs:
         return {
             "filename": file.filename,
@@ -47,42 +41,83 @@ async def verify_signature(file: UploadFile = File(...)):
             "signatures_count": 0,
             "signatures": []
         }
-
-    validation_context = ValidationContext(allow_fetching=False)
     results = []
     all_valid = True
-
     for sig in embedded_sigs:
+        field_name = getattr(sig, 'field_name', 'Signature')
+        signer_name = "Не указан"
+        issuer_name = "Неизвестный издатель"
+        signing_time_str = "Отсутствует"
+        cert = getattr(sig, 'signer_cert', None)
+        if cert:
+            try:
+                native_subj = cert.subject.native
+                if isinstance(native_subj, dict):
+                    common_name = native_subj.get('common_name')
+                    surname = native_subj.get('surname')
+                    given_name = native_subj.get('given_name')
+                    if common_name:
+                        signer_name = str(common_name)
+                    elif surname or given_name:
+                        signer_name = f"{surname or ''} {given_name or ''}".strip()
+                    else:
+                        signer_name = cert.subject.human_friendly
+                else:
+                    signer_name = cert.subject.human_friendly
+            except Exception:
+                try:
+                    signer_name = cert.subject.human_friendly
+                except Exception:
+                    signer_name = "Не указан"
+            try:
+                native_issuer = cert.issuer.native
+                if isinstance(native_issuer, dict):
+                    issuer_name = native_issuer.get('common_name') or cert.issuer.human_friendly
+                else:
+                    issuer_name = cert.issuer.human_friendly
+            except Exception:
+                try:
+                    issuer_name = cert.issuer.human_friendly
+                except Exception:
+                    issuer_name = "Неизвестный издатель"
         try:
-            status = validate_pdf_signature(sig, validation_context)
-            is_intact = status.intact
-            has_valid_crypto = status.valid
-
-            cert = sig.signer_cert
-            subject_str = cert.subject.human_friendly if cert else "Неизвестный сертификат"
-            issuer_str = cert.issuer.human_friendly if cert else "Неизвестный издатель"
-
-            sig_info = {
-                "field_name": sig.field_name,
+            raw_time = getattr(sig, 'self_reported_timestamp', None)
+            if raw_time:
+                signing_time_str = raw_time.strftime("%d.%m.%Y %H:%M:%S")
+        except Exception:
+            pass
+        try:
+            # Асинхронный вызов напрямую в event loop FastAPI!
+            status = await async_validate_pdf_signature(sig, skip_diff=True)
+            is_intact = bool(status.intact)
+            has_valid_crypto = bool(status.valid)
+            print(f"[SIGNATURE CHECK] file={file.filename}, field={field_name}, intact={is_intact}, valid={has_valid_crypto}, signer={signer_name}", flush=True)
+            sig_valid = is_intact and has_valid_crypto
+            if not sig_valid:
+                all_valid = False
+            results.append({
+                "field_name": field_name,
+                "signer": signer_name,
+                "signer_subject": signer_name,
+                "issuer": issuer_name,
+                "signing_time": signing_time_str,
                 "intact": is_intact,
                 "cryptographically_valid": has_valid_crypto,
-                "signer_subject": subject_str,
-                "issuer": issuer_str,
                 "summary": "Документ подлинный, изменений после подписания не вносилось" if is_intact else "ВНИМАНИЕ! Документ был изменен после подписания!"
-            }
-
-            if not is_intact or not has_valid_crypto:
-                all_valid = False
-
-            results.append(sig_info)
-
+            })
         except Exception as e:
             all_valid = False
+            print(f"[SIGNATURE EXCEPTION] {str(e)}", flush=True)
             results.append({
-                "field_name": sig.field_name,
-                "error": f"Ошибка верификации подписи: {str(e)}"
+                "field_name": field_name,
+                "signer": signer_name,
+                "signer_subject": signer_name,
+                "issuer": issuer_name,
+                "signing_time": signing_time_str,
+                "intact": False,
+                "cryptographically_valid": False,
+                "error": f"Ошибка проверки подписи: {str(e)}"
             })
-
     return {
         "filename": file.filename,
         "has_signatures": True,
