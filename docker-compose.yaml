@@ -165,3 +165,23 @@ services:
       - hub-net
     depends_on:
       - prometheus
+
+  # --- КОРПОРАТИВНЫЙ TELEGRAM-БОТ ---
+  telegram-bot:
+    build:
+      context: ./services/telegram-bot
+      dockerfile: Dockerfile
+    image: lab-telegram-bot:latest
+    container_name: lab-telegram-bot
+    restart: unless-stopped
+    environment:
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      SIGNATURE_URL: http://signature-validator:8000/api/v1/verify
+      STIRLING_URL: http://nginx/api/stirling
+      STIRLING_API_KEY: sk_69420bdf8359b24426743be0498eda5e5629
+    networks:
+      - hub-net
+    depends_on:
+      - nginx
+      - signature-validator
+      - stirling-pdf

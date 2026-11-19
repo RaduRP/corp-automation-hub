@@ -14,3 +14,13 @@ tessdata/
 *.log
 __pycache__/
 .DS_Store
+# Временные бэкапы и патчи
+*.bak*
+*.tmp
+patch_*.py
+fix_*.py
+deploy_noc_admin.py
+apply_portal_redesign.py
+activate_noc_admin.py
+install_perfect_portal.py
+setup_telegram_bot.py
