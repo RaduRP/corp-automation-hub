@@ -191,6 +191,8 @@ function setTargetFormat(fmt, el) {
 }
 // 7. RESULT PRESENTER
 function presentResult(opts) {
+    var vvc = document.getElementById('verifyVaultContainer');
+    if (vvc) vvc.classList.add('hidden');
     if(currentBlobUrl){window.URL.revokeObjectURL(currentBlobUrl);}
     currentBlobUrl = window.URL.createObjectURL(opts.blob);
     currentResultBlob = opts.blob;
