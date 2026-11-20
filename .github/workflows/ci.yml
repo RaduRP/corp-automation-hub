@@ -1,55 +1,39 @@
-name: DevOps CI/CD Pipeline
-
+name: 🚀 DocGov CI Pipeline
+# Срабатывает при любом push или pull request в ветку main
 on:
   push:
     branches: [ "main" ]
-
+  pull_request:
+    branches: [ "main" ]
 jobs:
-  # --- 1. ВАЛИДАЦИЯ СИНТАКСИСА ---
-  lint-and-validate:
-    name: Lint & Validate Compose
+  test-and-build:
+    name: 🧪 Синтаксис, Линтинг и Тестовая сборка Docker
     runs-on: ubuntu-latest
-    timeout-minutes: 3
     steps:
-      - name: Скачиваем код
+      # Шаг 1: Скачиваем репозиторий
+      - name: 📥 Клонирование репозитория
         uses: actions/checkout@v4
-
-      - name: Подставляем тестовый .env
-        run: cp .env.example .env
-
-      - name: Проверяем валидность docker-compose
+      # Шаг 2: Устанавливаем Python
+      - name: 🐍 Настройка окружения Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      # Шаг 3: Проверка синтаксиса Python без запуска
+      - name: 🔍 Проверка синтаксиса Python (Syntax Check)
+        run: |
+          python -m py_compile services/signature-validator/app/main.py
+          python -m py_compile services/telegram-bot/bot.py
+          echo "✅ Синтаксис Python-скриптов идеален!"
+      # Шаг 4: Проверка валидности docker-compose.yaml
+      - name: 🐳 Валидация структуры Docker Compose
         run: |
           docker compose config --quiet
-          echo "Синтаксис корректен!"
-
-  # --- 2. СКАНИРОВАНИЕ БЕЗОПАСНОСТИ (С ТАЙМАУТОМ И ЗАЩИТОЙ) ---
-  security-scan:
-    name: Security Vulnerability Scan (Trivy)
-    runs-on: ubuntu-latest
-    needs: lint-and-validate
-    timeout-minutes: 5
-    continue-on-error: true   # Если база уязвимостей недоступна, не блокируем релиз
-    steps:
-      - name: Сканируем образ Postgres
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          image-ref: 'postgres:16-alpine'
-          format: 'table'
-          exit-code: '0'
-          ignore-unfixed: true
-          severity: 'CRITICAL'
-
-  # --- 3. АВТОДЕПЛОЙ НА НАШУ ВИРТУАЛКУ ---
-  deploy:
-    name: CD Deploy to Production VM
-    runs-on: self-hosted
-    needs: [lint-and-validate, security-scan]
-    timeout-minutes: 5
-    steps:
-      - name: Переходим в рабочую папку и обновляем контейнеры
+          echo "✅ Файл docker-compose.yaml синтаксически корректен!"
+      # Шаг 5: Тестовая сборка контейнеров (проверка Dockerfile)
+      - name: 🔨 Тестовая сборка Docker-образов
         run: |
-          echo "=== НАЧИНАЕМ АВТОМАТИЧЕСКИЙ ДЕПЛОЙ ==="
-          cd /home/administrator/devops-lab/automation-hub
-          git pull origin main
-          docker compose up -d --remove-orphans
-          echo "=== ДЕПЛОЙ УСПЕШНО ЗАВЕРШЕН ==="
+          echo "Сборка Signature Validator..."
+          docker build -t test-signature-validator services/signature-validator/
+          echo "Сборка Telegram Bot..."
+          docker build -t test-telegram-bot services/telegram-bot/
+          echo "🎉 Все образы собираются без ошибок!"
