@@ -50,5 +50,5 @@ jobs:
       - name: 🔄 Применение изменений и перезапуск контейнеров
         run: |
           cd /home/administrator/devops-lab/automation-hub
-          docker compose up -d --build signature-validator telegram-bot
+          docker compose up -d --build signature-validator telegram-bot && docker compose restart nginx
           echo "🎉 Контейнеры успешно обновлены на сервере dev901!"
