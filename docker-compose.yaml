@@ -57,6 +57,16 @@ services:
     image: lab-signature-validator:latest
     container_name: lab-signature-validator
     restart: unless-stopped
+    environment:
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
+      MINIO_BUCKET: docgov-vault
+      POSTGRES_HOST: postgres-db
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     networks:
       - hub-net
 
@@ -84,6 +94,8 @@ services:
     image: docker.n8n.io/n8nio/n8n:latest
     container_name: lab-n8n
     restart: unless-stopped
+    ports:
+      - "5678:5678"
     environment:
       - DB_TYPE=postgresdb
       - DB_POSTGRESDB_HOST=postgres-db
