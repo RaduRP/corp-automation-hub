@@ -1,39 +1,54 @@
-name: 🚀 DocGov CI Pipeline
-# Срабатывает при любом push или pull request в ветку main
+name: 🚀 DocGov CI/CD Pipeline
 on:
   push:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
 jobs:
+  # ==========================================
+  # ЭТАП 1: CI (Тесты и сборка в облаке GitHub)
+  # ==========================================
   test-and-build:
-    name: 🧪 Синтаксис, Линтинг и Тестовая сборка Docker
+    name: 🧪 1. Тесты и валидация
     runs-on: ubuntu-latest
     steps:
-      # Шаг 1: Скачиваем репозиторий
       - name: 📥 Клонирование репозитория
         uses: actions/checkout@v4
-      # Шаг 2: Устанавливаем Python
-      - name: 🐍 Настройка окружения Python 3.11
+      - name: 🐍 Настройка Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      # Шаг 3: Проверка синтаксиса Python без запуска
-      - name: 🔍 Проверка синтаксиса Python (Syntax Check)
+      - name: 🔍 Проверка синтаксиса Python
         run: |
           python -m py_compile services/signature-validator/app/main.py
           python -m py_compile services/telegram-bot/bot.py
-          echo "✅ Синтаксис Python-скриптов идеален!"
-      # Шаг 4: Проверка валидности docker-compose.yaml
-      - name: 🐳 Валидация структуры Docker Compose
+          echo "✅ Синтаксис Python идеален!"
+      - name: 🐳 Валидация Docker Compose
         run: |
           docker compose config --quiet
-          echo "✅ Файл docker-compose.yaml синтаксически корректен!"
-      # Шаг 5: Тестовая сборка контейнеров (проверка Dockerfile)
-      - name: 🔨 Тестовая сборка Docker-образов
+          echo "✅ Конфигурация Docker Compose корректна!"
+      - name: 🔨 Тестовая сборка микросервисов
         run: |
-          echo "Сборка Signature Validator..."
           docker build -t test-signature-validator services/signature-validator/
-          echo "Сборка Telegram Bot..."
           docker build -t test-telegram-bot services/telegram-bot/
-          echo "🎉 Все образы собираются без ошибок!"
+          echo "🎉 Все микросервисы успешно собраны!"
+  # ==========================================
+  # ЭТАП 2: CD (Автодеплой на наш сервер dev901)
+  # ==========================================
+  deploy:
+    name: 🚀 2. Автодеплой на Production (dev901)
+    needs: test-and-build
+    runs-on: self-hosted
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: 📂 Переход в рабочую директорию и Git Pull
+        run: |
+          cd /home/administrator/devops-lab/automation-hub
+          git fetch origin main
+          git reset --hard origin/main
+          echo "✅ Код на сервере успешно синхронизирован с Git!"
+      - name: 🔄 Применение изменений и перезапуск контейнеров
+        run: |
+          cd /home/administrator/devops-lab/automation-hub
+          docker compose up -d --build signature-validator telegram-bot
+          echo "🎉 Контейнеры успешно обновлены на сервере dev901!"
